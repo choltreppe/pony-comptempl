@@ -10,4 +10,12 @@
     {% end %}
   </ul>
   {{ some_other_text }}
+
+  <h1>using include</h1>
+  <ul>
+    {% for item in items.values() %}
+      {% include _list_item.html %}
+    {% end %}
+  </ul>
+
 {% end %}

@@ -5,7 +5,7 @@ import fusion/matching
 type
   TokenKind = enum
     tkText, tkExpr
-    tkFun="fun", tkExtends="extends", tkBlock="block"
+    tkFun="fun", tkInclude="include", tkExtends="extends", tkBlock="block"
     tkFor="for", tkIf="if", tkElseif="elseif", tkElse="else", tkMatch="match"
     tkCase="|", tkEnd="end"
 
@@ -18,23 +18,31 @@ type
     cond: string
     body: seq[Node]
 
-  NodeKind = enum nkText, nkExpr, nkIf, nkFor, nkMatch, nkBlock
+  NodeKind = enum nkText, nkExpr, nkIf, nkFor, nkMatch, nkBlock, nkInclude
   Node = ref object
     case kind: NodeKind
     of nkText, nkExpr: val: string
+
     of nkFor:
       forIter: string
       forBody: seq[Node]
+
     of nkIf:
       ifBranches: seq[Branch]
       ifElseBody: seq[Node]
+
     of nkMatch:
       matchOn: string
       cases: seq[Branch]
       matchElseBody: Option[seq[Node]]
+
     of nkBlock:
       blockName: string
       blockBody: seq[Node]
+
+    of nkInclude:
+      includeFile: string
+      pos: int  # realy just needed for includes at the moment
 
   Template = object
     funHead: Option[string]
@@ -225,6 +233,9 @@ proc parse(
         of tkBlock:
           Node(kind: nkBlock, blockName: token.val, blockBody: parseNodes())
 
+        of tkInclude:
+          Node(kind: nkInclude, includeFile: token.val, pos: token.pos)
+
         of tkEnd:
           if not needsClosingEnd:
             token.error("unexpected 'end'")
@@ -269,7 +280,7 @@ func replaceBlocks(templ: Template, blocks: Table[string, seq[Node]]): Template 
     result = @[]
     for node in nodes:
       case node.kind
-      of nkText, nkExpr: result &= node
+      of nkText, nkExpr, nkInclude: result &= node
       of nkBlock:
         if node.blockName in blocks:
           result &= blocks[node.blockName]
@@ -317,6 +328,40 @@ proc expandExtension(
     let funHead = templ.funHead
     templ = replaceBlocks(ctx[templ.extends], templ.blocks)
     templ.funHead = funHead
+
+proc expandIncludes(
+  filename: string,
+  templ: var Template,
+  ctx: Table[string, Template]
+) =
+  proc expandIncludes(nodes: var seq[Node]) =
+    for node in nodes.mitems:
+      case node.kind
+      of nkInclude:
+        if node.includeFile notin ctx:
+          raise CompileError(
+            filename: filename, pos: node.pos,
+            msg: &"'{node.includeFile}' not found"
+          )
+        node = Node(
+          kind: nkBlock,
+          blockBody: ctx[node.includeFile].body
+        )  # using unnamed block as hack to get around replacing single node with multiple
+
+      of nkText, nkExpr: discard
+      of nkBlock: expandIncludes(node.blockBody)
+      of nkFor: expandIncludes(node.forBody)
+      of nkIf:
+        expandIncludes(node.ifElseBody)
+        for branch in node.ifBranches.mitems:
+          expandIncludes(branch.body)
+      of nkMatch:
+        if node.matchElseBody.isSome:
+          expandIncludes(node.matchElseBody.get)
+        for branch in node.cases.mitems:
+          expandIncludes(branch.body)
+
+  expandIncludes(templ.body)
 
 
 proc generate(temp: Template): string =
@@ -369,6 +414,9 @@ proc generate(temp: Template): string =
       of nkBlock:
         generate(node.blockBody)
 
+      of nkInclude:
+        assert false
+
   generate(temp.body)
   code & "\n"
 
@@ -415,6 +463,9 @@ proc compile(folder: Path) =
 
     for filename, templ in templs.mpairs:
       expandExtension(filename, templ, templs)
+
+    for filename, templ in templs.mpairs:
+      expandIncludes(filename, templ, templs)
 
     code &= "primitive " & folder.lastPathPart().`$`.toPascalCase() & "\n"
     for templ in templs.values:
