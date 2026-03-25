@@ -74,6 +74,8 @@ proc lex(code, filename: string): seq[Token] =
       token.kind = tkCase
       i += code.parseUntil(token.val, "|}", i)
     of '%':
+      i += code.skipWhitespace(i)
+      let start = i
       var s: string
       i += code.parseUntil(s, "%}", i)
       s = strip(s)
@@ -88,13 +90,13 @@ proc lex(code, filename: string): seq[Token] =
           token.val = s[j..^1].strip()
           case token.kind
           of tkEnd, tkElse:
-            error(j, &"unexpected '{token.val}' after '{keyword}'")
+            error(start+j, &"unexpected '{token.val}' after '{keyword}'")
           of tkText, tkExpr, tkCase:
-            error(j, &"unexpected '{s}'")
+            error(start+j, &"unexpected '{s}'")
           else:
             discard
         except ValueError:
-          error(i, &"unknown keyword '{keyword}'")
+          error(start, &"unknown keyword '{keyword}'")
     else:
       return
     
@@ -384,6 +386,15 @@ func toPascalCase(s: string): string =
       result &= c
     inc i
 
+func getLineInfo(code: string, pos: int): tuple[line, col: int] =
+  result = (1, 0)
+  for i in 0..pos:
+    if code[i] == '\n':
+      inc result.line
+      result.col = 0
+    else:
+      inc result.col
+
 proc compile(folder: Path) =
   var code = ""
 
@@ -411,7 +422,8 @@ proc compile(folder: Path) =
         code &= '\n' & generate(templ)
 
   except CompileError as e:
-    quit &"{e.filename}({e.pos}) {e.msg}"
+    let (line, col) = getLineInfo(readFile($(folder/Path(e.filename))), e.pos)
+    quit &"{e.filename}({line}:{col}) {e.msg}"
       
   writeFile($folder.changeFileExt("pony"), code)
 
