@@ -1,0 +1,13 @@
+{% extends _base.html %}
+
+{% block content %}
+  <form>
+    <div class="fields">
+      {% block fields %} {% end %}
+    </div>
+    <div class="buttons">
+      {% block buttons %}
+        <input type="submit">
+      {% end %}
+    </div>
+{% end %}

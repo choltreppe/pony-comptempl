@@ -1,0 +1,14 @@
+{% fun login_form() %}
+{% extends _form_page.html %}
+
+{% block title %} login {% end %}
+
+{% block fields %}
+  <input type="text" placeholder="username">
+  <input type="password" placeholder="password">
+{% end %}
+
+{% block buttons %}
+  <a href="/signup">Sign Up</a>
+  <input type="submit" value="Login">
+{% end %}

@@ -1,17 +1,13 @@
-{% fun list(title: String, items: Array[String]) %}
+{% fun list(items: Array[String], some_other_text: String) %}
+{% extends _base.html %}
 
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title }}</title>
-</head>
-<body>
+{% block title %} lists {% end %}
+
+{% block content %}
   <ul>
     {% for item in items.values() %}
       <li>{{ item }}</li>
     {% end %}
   </ul>
-</body>
-</html>
+  {{ some_other_text }}
+{% end %}
