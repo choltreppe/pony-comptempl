@@ -1,0 +1,11 @@
+{% fun if_example(n: USize) %}
+
+<div id="if-example">
+  {% if n < 0 %}
+    <text color="red">{{n.string()}}</text>
+  {% elseif n > 0 %}
+    <b>{{n.string()}}</b>
+  {% else %}
+    zero
+  {% end %}
+</div>

@@ -1,0 +1,15 @@
+{% fun complex(x: (U8|String|Array[U8])) %}
+
+<div>
+  {% match x %}
+  {| let i: U8 |}
+    <b>number: </b>{{ i.string() }}
+  {| let arr: Array[U8] |}
+    <ul>
+      {% for v in arr.values() %}
+        <li>{{ v.string() }} {% if v == 0 %}<b>zero</b>{% end %}</li>
+      {% end %}
+    </ul>
+  {| let s: String |} {{s}}
+  {% end %}
+</div>
