@@ -1,5 +1,5 @@
 # CompTempl
-precompiled html templates for the pony programming language
+compiled html templates for the pony programming language
 
 ## Installation
 
