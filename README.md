@@ -123,3 +123,9 @@ You can include other templates anywhere inside a templates.
   <div class="content">{{ content }}</div>
 </div>
 ```
+
+## Preamble
+
+You can put a `preamble.pony` file in your templates folder that will be prepended to the produced file.
+In the `examples` folder, this is used to test the produced functions.
+In a real Project this is supposed to be used primarly for imports.
