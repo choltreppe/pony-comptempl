@@ -1,6 +1,16 @@
 # CompTempl
 precompiled html templates for the pony programming language
 
+## Installation
+
+- install nim [nim](https://nim-lang.org/install.html)
+- clone repo and compile:
+```sh
+clone https://github.com/choltreppe/pony-comptempl
+cd pony-comptempl
+nimble build -d:release
+```
+
 ## Usage
 
 Simply put all your templates in one folder (lets say `src/templates`).
