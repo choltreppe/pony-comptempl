@@ -22,7 +22,7 @@ with all your templates compiled to simple functions bundled in `primitive Templ
 ## Syntax
 
 All templates (except partials, explained later) need to start with a function head definition
-```
+```jinja
 {% fun example_template(a: String, b: Int) %}
 ```
 You don't need to give a return type, its always `String`
@@ -30,7 +30,7 @@ You don't need to give a return type, its always `String`
 ### Interpolation
 
 inject values with `{{ }}`
-```
+```jinja
 <h1>{{title}}</h1>
 ```
 You can use any valid pony code here
@@ -66,7 +66,7 @@ You can extend templates, and use named blocks to replace parts in the parent te
 Note that blocks get replaced not filled, so you can give default contents
 
 **templates/base.html** (should probably be partial. explained in next section)
-```
+```jinja
 {% fun base() %}
 <!DOCTYPE html>
 <html>
@@ -82,7 +82,7 @@ Note that blocks get replaced not filled, so you can give default contents
 ```
 
 **templates/home.html**
-```
+```jinja
 {% fun home(username: String) %}
 {% extends base.html %}
 
@@ -100,7 +100,7 @@ So most of the time, if you extend a template you dont want to use the base temp
 For that case you can define it als a partial, by starting the filename with `_` and omitting the `fun` declaration
 
 **templates/_base.html**
-```
+```jinja
 <!DOCTYPE html>
 <html>
 <head>
@@ -118,7 +118,7 @@ For that case you can define it als a partial, by starting the filename with `_`
 
 You can include other templates anywhere inside a templates.
 
-```
+```jinja
 <div id="articles">
   {% for (title, content) in articles.values() %}
     {% include _card.html %}
@@ -127,7 +127,7 @@ You can include other templates anywhere inside a templates.
 ```
 
 **templates/_card.html**
-```
+```jinja
 <div class="card">
   <div class="title">{{ title }}</div>
   <div class="content">{{ content }}</div>
